@@ -96,26 +96,41 @@ function displayEntries(entries) {
     tableBody.innerHTML = '';
 
     entries.forEach(entry => {
+        const row = document.createElement('tr');
         const english = cleanInput(entry.english || '');
         const french = cleanInput(entry.french || '');
         const context = cleanInput(entry.context || '').replace(/\\n/g, '<br><br>');
         const notes = cleanInput(entry.notes || '').replace(/\\n/g, '<br><br>');
 
-        const row = document.createElement('tr');
+        // Create the edit button using createElement instead of innerHTML
+        const editButton = document.createElement('button');
+        editButton.className = 'btn btn-edit btn-sm';
+        editButton.textContent = 'Edit';
+        editButton.addEventListener('click', () => {
+            editEntry(entry.id, entry.english, entry.french, entry.context, entry.notes);
+        });
+
+        // Create the delete button
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'btn btn-danger btn-sm';
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', () => {
+            deleteEntry(entry.id);
+        });
+
+        // Create the actions cell
+        const actionsCell = document.createElement('td');
+        actionsCell.appendChild(editButton);
+        actionsCell.appendChild(document.createTextNode(' ')); // Space between buttons
+        actionsCell.appendChild(deleteButton);
+
         row.innerHTML = `
             <td>${english}</td>
             <td>${french}</td>
             <td>${context}</td>
             <td>${notes}</td>
-            <td>
-                <button class="btn btn-edit btn-sm" onclick="editEntry('${entry.id}', '${escapeQuotes(entry.english)}', '${escapeQuotes(entry.french)}', '${escapeQuotes(entry.context)}', '${escapeQuotes(entry.notes)}')">
-                    Edit
-                </button>
-                <button class="btn btn-danger btn-sm" onclick="deleteEntry('${entry.id}')">
-                    Delete
-                </button>
-            </td>
         `;
+        row.appendChild(actionsCell);
         tableBody.appendChild(row);
     });
 }
@@ -129,11 +144,11 @@ function escapeQuotes(input) {
 }
 
 function editEntry(id, english, french, context, notes) {
-    document.getElementById('editId').value = id;
-    document.getElementById('editEnglish').value = decodeHtml(english);
-    document.getElementById('editFrench').value = decodeHtml(french);
-    document.getElementById('editContext').value = decodeHtml(context);
-    document.getElementById('editNotes').value = decodeHtml(notes);
+    document.getElementById('editId').value = id || '';
+    document.getElementById('editEnglish').value = english || '';
+    document.getElementById('editFrench').value = french || '';
+    document.getElementById('editContext').value = context || '';
+    document.getElementById('editNotes').value = notes || '';
     editModal.show();
 }
 
