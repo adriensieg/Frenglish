@@ -42,7 +42,7 @@ class TranslationEntry:
 class FrenglishDatabase:
     def __init__(self):
         PROJECT_ID = "personal-sandbox-433116"
-        PRIVATE_KEY_ID = "a7bdfd9a00b73c241efd2f7dfe39b131ce5ed236"
+        PRIVATE_KEY_ID = ""
         PRIVATE_KEY = """-----BEGIN PRIVATE KEY-----
 -----END PRIVATE KEY-----
 """
@@ -119,7 +119,7 @@ db = FrenglishDatabase()
 
 
 CONFIG = {
-    "api_key": "AIzaSyBhCB1cO0ZUzRB0DYBCz4zcMwS9kVy_ruU",
+    "api_key": "",
     "model_name": "gemini-2.0-flash-exp"
 }
 
