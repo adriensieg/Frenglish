@@ -22,6 +22,9 @@ steps:
       - 'us-central1'
       - '--allow-unauthenticated'
 
+options:
+  default_logs_bucket_behavior: REGIONAL_USER_OWNED_BUCKET
+
 substitutions:
   _SERVICE_NAME: "frenglish"
   _REGION: "us-central1"
