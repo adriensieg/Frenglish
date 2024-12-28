@@ -21,7 +21,7 @@ class TranslationEntry:
     french: str
     context: str
     notes: str = ""
-    
+
     def to_dict(self) -> Dict[str, str]:
         return {
             "english": self.english if self.english else "",
@@ -29,7 +29,7 @@ class TranslationEntry:
             "context": self.context if self.context else "",
             "notes": self.notes if self.notes else ""
         }
-    
+
     @staticmethod
     def from_dict(data: Dict[str, str]) -> 'TranslationEntry':
         return TranslationEntry(
@@ -39,11 +39,10 @@ class TranslationEntry:
             notes=data.get("notes", "")
         )
 
-class FrenglishDatabase:
-    def __init__(self):
-        PROJECT_ID = "personal-sandbox-433116"
-        PRIVATE_KEY_ID = ""
-        PRIVATE_KEY = """-----BEGIN PRIVATE KEY-----
+# Firestore credentials
+PROJECT_ID = "personal-sandbox-433116" 
+PRIVATE_KEY_ID = "a7bdfd9a00b73c241efd2f7dfe39b131ce5ed236"
+PRIVATE_KEY = """-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDCaxwYQbmRhATf
 TmuQjCeW0/YK50/FOv5c/nGIEWcFfKd+yn2sv3e4llS+Y36x3MTU4TyAP23n71e0
 y+kJC6hhcDMKYPG1J5fYTESJL39CeLiB7Deasvi2rupuTql0lUyBYHg6UfNq6n7Q
@@ -72,77 +71,72 @@ yYEnunxju99EONIhN7llqskyiXttxCLSifM0OQurgoZj7WvwBK88HxpQjDls+dfK
 tzZoGuUSHSvgroBQOdqSINE=
 -----END PRIVATE KEY-----
 """
-        CLIENT_ID = "107679320816609162297"
-        CLIENT_EMAIL = "firestore-backend-sa@personal-sandbox-433116.iam.gserviceaccount.com"
-        CLIENT_X509_CERT = "https://www.googleapis.com/robot/v1/metadata/x509/firestore-backend-sa%40personal-sandbox-433116.iam.gserviceaccount.com"
+CLIENT_ID = "107679320816609162297"
+CLIENT_EMAIL = "firestore-backend-sa@personal-sandbox-433116.iam.gserviceaccount.com"
+CLIENT_X509_CERT = "https://www.googleapis.com/robot/v1/metadata/x509/firestore-backend-sa%40personal-sandbox-433116.iam.gserviceaccount.com"
 
-        cred_dict = {
-            "type": "service_account",
-            "project_id": PROJECT_ID,
-            "private_key_id": PRIVATE_KEY_ID,
-            "private_key": PRIVATE_KEY,
-            "client_email": CLIENT_EMAIL,
-            "client_id": CLIENT_ID,
-            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-            "token_uri": "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_x509_cert_url": CLIENT_X509_CERT,
-            "universe_domain": "googleapis.com"
-        }
+# Initialize Firebase Admin SDK
+cred = credentials.Certificate({
+    "type": "service_account",
+    "project_id": PROJECT_ID,
+    "private_key_id": PRIVATE_KEY_ID,
+    "private_key": PRIVATE_KEY,
+    "client_email": CLIENT_EMAIL,
+    "client_id": CLIENT_ID,
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": CLIENT_X509_CERT,
+    "universe_domain": "googleapis.com"
+})
 
-        if not firebase_admin._apps:
-            cred = credentials.Certificate(cred_dict)
-            firebase_admin.initialize_app(cred)
-        
-        self.db = firestore.client()
-        self.collection = self.db.collection('Frenglish')
+firebase_admin.initialize_app(cred)
+db = firestore.Client()
+collection = db.collection('Frenglish')
 
-    def add_entry(self, entry: TranslationEntry) -> str:
-        try:
-            if not any([entry.english, entry.french]):
-                raise ValueError("Entry must contain at least one non-empty field")
-            doc_ref = self.collection.document()
-            doc_ref.set(entry.to_dict())
-            return doc_ref.id
-        except Exception as e:
-            logger.error(f"Error adding entry: {e}")
-            raise
+def add_entry(entry: TranslationEntry) -> str:
+    try:
+        if not any([entry.english, entry.french]):
+            raise ValueError("Entry must contain at least one non-empty field")
+        doc_ref = collection.document()
+        doc_ref.set(entry.to_dict())
+        return doc_ref.id
+    except Exception as e:
+        logger.error(f"Error adding entry: {e}")
+        raise
 
-    def get_all_entries(self) -> List[Dict[str, str]]:
-        try:
-            docs = self.collection.stream()
-            entries = []
-            for doc in docs:
-                data = doc.to_dict()
-                data['id'] = doc.id
-                entries.append(data)
-            return entries
-        except Exception as e:
-            logger.error(f"Error retrieving entries: {e}")
-            raise
+def get_all_entries() -> List[Dict[str, str]]:
+    try:
+        docs = collection.stream()
+        entries = []
+        for doc in docs:
+            data = doc.to_dict()
+            data['id'] = doc.id
+            entries.append(data)
+        return entries
+    except Exception as e:
+        logger.error(f"Error retrieving entries: {e}")
+        raise
 
-    def update_entry(self, doc_id: str, entry: TranslationEntry) -> None:
-        try:
-            if not doc_id:
-                raise ValueError("Document ID is required for update")
-            if not any([entry.english, entry.french]):
-                raise ValueError("Entry must contain at least one non-empty field")
-            self.collection.document(doc_id).set(entry.to_dict())
-        except Exception as e:
-            logger.error(f"Error updating entry: {e}")
-            raise
+def update_entry(doc_id: str, entry: TranslationEntry) -> None:
+    try:
+        if not doc_id:
+            raise ValueError("Document ID is required for update")
+        if not any([entry.english, entry.french]):
+            raise ValueError("Entry must contain at least one non-empty field")
+        collection.document(doc_id).set(entry.to_dict())
+    except Exception as e:
+        logger.error(f"Error updating entry: {e}")
+        raise
 
-    def delete_entry(self, doc_id: str) -> None:
-        try:
-            if not doc_id:
-                raise ValueError("Document ID is required for deletion")
-            self.collection.document(doc_id).delete()
-        except Exception as e:
-            logger.error(f"Error deleting entry: {e}")
-            raise
-
-db = FrenglishDatabase()
-
+def delete_entry(doc_id: str) -> None:
+    try:
+        if not doc_id:
+            raise ValueError("Document ID is required for deletion")
+        collection.document(doc_id).delete()
+    except Exception as e:
+        logger.error(f"Error deleting entry: {e}")
+        raise
 
 CONFIG = {
     "api_key": "AIzaSyBhCB1cO0ZUzRB0DYBCz4zcMwS9kVy_ruU",
@@ -162,18 +156,18 @@ def index():
 @app.route('/entries', methods=['GET'])
 def get_entries():
     try:
-        entries = db.get_all_entries()
+        entries = get_all_entries()
         return jsonify(entries)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @app.route('/entries', methods=['POST'])
-def add_entry():
+def add_entry_route():
     try:
         data = request.json
         if not data:
             return jsonify({"error": "No data provided"}), 400
-        
+
         entry = TranslationEntry(
             english=data.get('english', ''),
             french=data.get('french', ''),
@@ -183,24 +177,22 @@ def add_entry():
 
         if entry.french:
             result = TranslationEntry(
-                english = processor.traduction_vocabulary(translation, entry.french),
-                french = entry.french,
-                context = processor.traduction_vocabulary(sentences, entry.french),
-                notes = ""
+                english=processor.traduction_vocabulary(translation, entry.french),
+                french=entry.french,
+                context=processor.traduction_vocabulary(sentences, entry.french),
+                notes=""
             )
         elif entry.english:
             result = TranslationEntry(
-                english =  entry.english,
-                french = processor.traduction_vocabulary(translation, entry.english),
-                context = processor.traduction_vocabulary(sentences, entry.english),
-                notes = ""
+                english=entry.english,
+                french=processor.traduction_vocabulary(translation, entry.english),
+                context=processor.traduction_vocabulary(sentences, entry.english),
+                notes=""
             )
         else:
-            print('Nothing has been done')
+            return jsonify({"error": "Entry must contain English or French"}), 400
 
-        print(result)
-
-        doc_id = db.add_entry(result)
+        doc_id = add_entry(result)
         return jsonify({"id": doc_id, "message": "Entry added successfully"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -210,7 +202,7 @@ def update_entry_route(doc_id):
     try:
         if not doc_id:
             return jsonify({"error": "Invalid document ID"}), 400
-        
+
         data = request.json
         entry = TranslationEntry(
             english=data.get('english', ''),
@@ -218,8 +210,8 @@ def update_entry_route(doc_id):
             context=data.get('context', ''),
             notes=data.get('notes', '')
         )
-        
-        db.update_entry(doc_id, entry)
+
+        update_entry(doc_id, entry)
         return jsonify({"message": "Entry updated successfully"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -229,8 +221,8 @@ def delete_entry_route(doc_id):
     try:
         if not doc_id:
             return jsonify({"error": "Invalid document ID"}), 400
-        
-        db.delete_entry(doc_id)
+
+        delete_entry(doc_id)
         return jsonify({"message": "Entry deleted successfully"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
