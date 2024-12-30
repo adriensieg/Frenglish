@@ -92,13 +92,12 @@ cred = credentials.Certificate({
 
 firebase_admin.initialize_app(cred)
 db = firestore.Client()
-collection = db.collection('Frenglish')
 
 def add_entry(entry: TranslationEntry) -> str:
     try:
         if not any([entry.english, entry.french]):
             raise ValueError("Entry must contain at least one non-empty field")
-        doc_ref = collection.document()
+        doc_ref = db.collection('Frenglish').document()
         doc_ref.set(entry.to_dict())
         return doc_ref.id
     except Exception as e:
@@ -107,7 +106,7 @@ def add_entry(entry: TranslationEntry) -> str:
 
 def get_all_entries() -> List[Dict[str, str]]:
     try:
-        docs = collection.stream()
+        docs = db.collection('Frenglish').stream()
         entries = []
         for doc in docs:
             data = doc.to_dict()
@@ -124,7 +123,7 @@ def update_entry(doc_id: str, entry: TranslationEntry) -> None:
             raise ValueError("Document ID is required for update")
         if not any([entry.english, entry.french]):
             raise ValueError("Entry must contain at least one non-empty field")
-        collection.document(doc_id).set(entry.to_dict())
+        db.collection('Frenglish').document(doc_id).set(entry.to_dict())
     except Exception as e:
         logger.error(f"Error updating entry: {e}")
         raise
@@ -133,7 +132,7 @@ def delete_entry(doc_id: str) -> None:
     try:
         if not doc_id:
             raise ValueError("Document ID is required for deletion")
-        collection.document(doc_id).delete()
+        db.collection('Frenglish').document(doc_id).delete()
     except Exception as e:
         logger.error(f"Error deleting entry: {e}")
         raise
