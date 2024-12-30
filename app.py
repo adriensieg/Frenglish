@@ -1,19 +1,18 @@
-from typing import Dict, List, Optional
+from typing import Dict, List
 from dataclasses import dataclass
 import logging
-from flask import Flask, render_template, request, jsonify
-from flask_cors import CORS
+from flask import Flask, render_template, request, jsonify, send_from_directory
 import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime
 from algorithms.data_processor import GeminiProcessor
 from algorithms.prompts import translation, sentences
+import os
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
-CORS(app)
+app = Flask(__name__, static_folder="static", template_folder="templates")
 
 @dataclass
 class TranslationEntry:
@@ -227,4 +226,4 @@ def delete_entry_route(doc_id):
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)
