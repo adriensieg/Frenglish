@@ -1,4 +1,4 @@
-const API_URL = 'http://127.0.0.1:5000';
+//const API_URL = 'http://127.0.0.1:5000';
 let editModal;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -43,7 +43,7 @@ async function addEntry() {
         buttonText.textContent = 'Adding...';
         addButton.disabled = true;
 
-        const response = await fetch(`${API_URL}/entries`, {
+        const response = await fetch('/entries', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ async function addEntry() {
 
 async function loadEntries() {
     try {
-        const response = await fetch(`${API_URL}/entries`);
+        const response = await fetch('/entries');
         if (!response.ok) {
             throw new Error('Failed to load entries');
         }
@@ -170,7 +170,7 @@ async function saveEdit() {
     }
 
     try {
-        const response = await fetch(`${API_URL}/entries/${id}`, {
+        const response = await fetch(`/entries/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -208,7 +208,7 @@ async function deleteEntry(id) {
     }
 
     try {
-        const response = await fetch(`${API_URL}/entries/${id}`, {
+        const response = await fetch(`/entries/${id}`, {
             method: 'DELETE',
         });
 
