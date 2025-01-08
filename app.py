@@ -20,13 +20,15 @@ class TranslationEntry:
     french: str
     context: str
     notes: str = ""
+    timestamp: float = 0.0
 
     def to_dict(self) -> Dict[str, str]:
         return {
             "english": self.english if self.english else "",
             "french": self.french if self.french else "",
             "context": self.context if self.context else "",
-            "notes": self.notes if self.notes else ""
+            "notes": self.notes if self.notes else "",
+            "timestamp": self.timestamp
         }
 
     @staticmethod
@@ -35,7 +37,8 @@ class TranslationEntry:
             english=data.get("english", ""),
             french=data.get("french", ""),
             context=data.get("context", ""),
-            notes=data.get("notes", "")
+            notes=data.get("notes", ""),
+            timestamp=data.get("timestamp", 0.0)
         )
 
 # Firestore credentials
@@ -96,6 +99,10 @@ def add_entry(entry: TranslationEntry) -> str:
     try:
         if not any([entry.english, entry.french]):
             raise ValueError("Entry must contain at least one non-empty field")
+        
+        # Add timestamp before storing
+        entry.timestamp = datetime.now().timestamp()
+        
         doc_ref = db.collection('Frenglish').document()
         doc_ref.set(entry.to_dict())
         return doc_ref.id
@@ -105,7 +112,8 @@ def add_entry(entry: TranslationEntry) -> str:
 
 def get_all_entries() -> List[Dict[str, str]]:
     try:
-        docs = db.collection('Frenglish').stream()
+        # Query entries ordered by timestamp in descending order
+        docs = db.collection('Frenglish').order_by('timestamp', direction=firestore.Query.DESCENDING).stream()
         entries = []
         for doc in docs:
             data = doc.to_dict()
@@ -122,6 +130,15 @@ def update_entry(doc_id: str, entry: TranslationEntry) -> None:
             raise ValueError("Document ID is required for update")
         if not any([entry.english, entry.french]):
             raise ValueError("Entry must contain at least one non-empty field")
+        
+        # Preserve the original timestamp when updating
+        original_doc = db.collection('Frenglish').document(doc_id).get()
+        if original_doc.exists:
+            original_data = original_doc.to_dict()
+            entry.timestamp = original_data.get('timestamp', datetime.now().timestamp())
+        else:
+            entry.timestamp = datetime.now().timestamp()
+            
         db.collection('Frenglish').document(doc_id).set(entry.to_dict())
     except Exception as e:
         logger.error(f"Error updating entry: {e}")
@@ -191,7 +208,18 @@ def add_entry_route():
             return jsonify({"error": "Entry must contain English or French"}), 400
 
         doc_id = add_entry(result)
-        return jsonify({"id": doc_id, "message": "Entry added successfully"}), 201
+        
+        # Return the complete result data
+        return jsonify({
+            "id": doc_id,
+            "message": "Entry added successfully",
+            "english": result.english,
+            "french": result.french,
+            "context": result.context,
+            "notes": result.notes,
+            "timestamp": result.timestamp
+        }), 201
+        
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

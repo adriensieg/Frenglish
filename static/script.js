@@ -16,6 +16,8 @@ function setupModeToggle() {
     addMode.addEventListener('change', () => {
         addSection.style.display = 'block';
         seeSection.style.display = 'none';
+        // Hide result section when switching modes
+        document.getElementById('resultSection').style.display = 'none';
     });
 
     seeMode.addEventListener('change', () => {
@@ -31,6 +33,7 @@ async function addEntry() {
     const loadingSpinner = document.getElementById('loadingSpinner');
     const buttonText = document.getElementById('buttonText');
     const addButton = document.getElementById('addButton');
+    const resultSection = document.getElementById('resultSection');
 
     if (!english && !french) {
         alert('Please fill in at least one field');
@@ -42,6 +45,7 @@ async function addEntry() {
         loadingSpinner.style.display = 'inline-block';
         buttonText.textContent = 'Adding...';
         addButton.disabled = true;
+        resultSection.style.display = 'none';
 
         const response = await fetch('/entries', {
             method: 'POST',
@@ -58,8 +62,21 @@ async function addEntry() {
 
         const data = await response.json();
         if (response.ok) {
+            // Ensure we have the complete entry data from the Python backend
+            const resultData = {
+                english: data.english || english,
+                french: data.french || french,
+                context: data.context || '',
+                notes: data.notes || ''
+            };
+
+            // Display the complete result
+            document.getElementById('resultEnglish').textContent = resultData.english;
+            document.getElementById('resultFrench').textContent = resultData.french;
+            document.getElementById('resultContext').textContent = resultData.context;
+            resultSection.style.display = 'block';
+
             clearInputs();
-            alert(data.message || 'Entry added successfully!');
             if (document.getElementById('seeMode').checked) {
                 loadEntries();
             }
@@ -101,6 +118,10 @@ function displayEntries(entries) {
         const french = cleanInput(entry.french || '');
         const context = cleanInput(entry.context || '').replace(/\\n/g, '<br><br>');
         const notes = cleanInput(entry.notes || '').replace(/\\n/g, '<br><br>');
+        
+        // Format the timestamp
+        const date = new Date(entry.timestamp * 1000);
+        const formattedDate = date.toLocaleString();
 
         // Create the edit button using createElement instead of innerHTML
         const editButton = document.createElement('button');
@@ -129,6 +150,7 @@ function displayEntries(entries) {
             <td>${french}</td>
             <td>${context}</td>
             <td>${notes}</td>
+            <td><small class="text-muted">${formattedDate}</small></td>
         `;
         row.appendChild(actionsCell);
         tableBody.appendChild(row);
