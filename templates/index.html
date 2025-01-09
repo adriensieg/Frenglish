@@ -21,6 +21,9 @@
                 
                 <input type="radio" class="btn-check" name="mode" id="seeMode">
                 <label class="btn btn-outline-primary" for="seeMode">See</label>
+
+                <input type="radio" class="btn-check" name="mode" id="consultingMode">
+                <label class="btn btn-outline-primary" for="consultingMode">Consulting</label>
             </div>
         </div>
 
@@ -38,7 +41,6 @@
                 </div>
             </button>
 
-            <!-- New Result Display Section -->
             <div id="resultSection" class="mt-4" style="display: none;">
                 <div class="card">
                     <div class="card-header bg-light">
@@ -79,6 +81,32 @@
                 <tbody id="entriesTable">
                 </tbody>
             </table>
+        </div>
+
+        <div id="consultingSection" class="input-section" style="display: none;">
+            <div class="mb-3">
+                <textarea class="form-control" id="consultingInput" rows="5" 
+                    placeholder="Enter your text here"></textarea>
+            </div>
+            <button class="btn btn-primary w-100" id="consultingButton" onclick="processConsulting()">
+                <span id="consultingButtonText">Submit</span>
+                <div id="consultingSpinner" class="spinner-border spinner-border-sm ms-2" 
+                    role="status" style="display: none;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </button>
+            
+            <div id="consultingResultSection" class="mt-4" style="display: none;">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Result</h5>
+                    </div>
+                    <div class="card-body">
+                        <textarea class="form-control" id="consultingOutput" rows="5" 
+                            readonly></textarea>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="modal fade" id="editModal" tabindex="-1">

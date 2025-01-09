@@ -6,7 +6,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime
 from algorithms.data_processor import GeminiProcessor
-from algorithms.prompts import translation, sentences
+from algorithms.prompts import translation, sentences, bcg_consultant
 import os
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -250,6 +250,23 @@ def delete_entry_route(doc_id):
 
         delete_entry(doc_id)
         return jsonify({"message": "Entry deleted successfully"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/consulting', methods=['POST'])
+def process_consulting():
+    try:
+        data = request.json
+        if not data or 'text' not in data:
+            return jsonify({"error": "No text provided"}), 400
+            
+        input_text = data.get('text', '')
+        processed_text = processor.traduction_vocabulary(bcg_consultant, input_text),
+        
+        return jsonify({
+            "result": processed_text
+        }), 200
+        
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

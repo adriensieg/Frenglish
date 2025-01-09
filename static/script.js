@@ -1,4 +1,3 @@
-//const API_URL = 'http://127.0.0.1:5000';
 let editModal;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -10,12 +9,15 @@ document.addEventListener('DOMContentLoaded', () => {
 function setupModeToggle() {
     const addMode = document.getElementById('addMode');
     const seeMode = document.getElementById('seeMode');
+    const consultingMode = document.getElementById('consultingMode');
     const addSection = document.getElementById('addSection');
     const seeSection = document.getElementById('seeSection');
+    const consultingSection = document.getElementById('consultingSection');
 
     addMode.addEventListener('change', () => {
         addSection.style.display = 'block';
         seeSection.style.display = 'none';
+        consultingSection.style.display = 'none';
         // Hide result section when switching modes
         document.getElementById('resultSection').style.display = 'none';
     });
@@ -23,8 +25,66 @@ function setupModeToggle() {
     seeMode.addEventListener('change', () => {
         addSection.style.display = 'none';
         seeSection.style.display = 'block';
+        consultingSection.style.display = 'none';
         loadEntries();
     });
+
+    consultingMode.addEventListener('change', () => {
+        addSection.style.display = 'none';
+        seeSection.style.display = 'none';
+        consultingSection.style.display = 'block';
+        // Hide consulting result when switching to consulting mode
+        document.getElementById('consultingResultSection').style.display = 'none';
+        // Clear any previous input/output
+        document.getElementById('consultingInput').value = '';
+        document.getElementById('consultingOutput').value = '';
+    });
+}
+
+async function processConsulting() {
+    const inputText = document.getElementById('consultingInput').value.trim();
+    const spinner = document.getElementById('consultingSpinner');
+    const buttonText = document.getElementById('consultingButtonText');
+    const button = document.getElementById('consultingButton');
+    const resultSection = document.getElementById('consultingResultSection');
+
+    if (!inputText) {
+        alert('Please enter some text');
+        return;
+    }
+
+    try {
+        // Show loading state
+        spinner.style.display = 'inline-block';
+        buttonText.textContent = 'Processing...';
+        button.disabled = true;
+
+        const response = await fetch('/consulting', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                text: inputText
+            }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            document.getElementById('consultingOutput').value = data.result;
+            resultSection.style.display = 'block';
+        } else {
+            throw new Error(data.error || 'Error processing text');
+        }
+    } catch (error) {
+        console.error('Error processing text:', error);
+        alert(error.message || 'Error processing text');
+    } finally {
+        // Hide loading state
+        spinner.style.display = 'none';
+        buttonText.textContent = 'Submit';
+        button.disabled = false;
+    }
 }
 
 async function addEntry() {
