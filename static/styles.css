@@ -24,3 +24,43 @@ body {
         margin: 0.5rem;
     }
 }
+.challenge-section {
+    padding: 1rem;
+    max-width: 100%;
+}
+
+.challenge-section .card {
+    border-radius: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.challenge-section .card-header {
+    border-radius: 15px 15px 0 0;
+}
+
+.challenge-section h6 {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.challenge-section p {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+#nextChallengeButton {
+    width: 100%;
+    max-width: 200px;
+    border-radius: 25px;
+    padding: 0.75rem 1.5rem;
+}
+
+@media (max-width: 576px) {
+    .challenge-section {
+        padding: 0.5rem;
+    }
+    
+    .challenge-section p {
+        font-size: 1rem;
+    }
+}

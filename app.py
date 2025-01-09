@@ -8,6 +8,7 @@ from datetime import datetime
 from algorithms.data_processor import GeminiProcessor
 from algorithms.prompts import translation, sentences, bcg_consultant
 import os
+import random
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -268,6 +269,27 @@ def process_consulting():
         }), 200
         
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/random-entry', methods=['GET'])
+def get_random_entry():
+    try:
+        # Get all documents from the collection
+        docs = list(db.collection('Frenglish').stream())
+        
+        if not docs:
+            return jsonify({"error": "No entries found"}), 404
+            
+        # Select a random document
+        random_doc = random.choice(docs)
+        
+        # Convert the document to a dictionary and add the ID
+        entry_data = random_doc.to_dict()
+        entry_data['id'] = random_doc.id
+        
+        return jsonify(entry_data)
+    except Exception as e:
+        logger.error(f"Error retrieving random entry: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':

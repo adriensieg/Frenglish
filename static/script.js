@@ -4,21 +4,27 @@ document.addEventListener('DOMContentLoaded', () => {
     editModal = new bootstrap.Modal(document.getElementById('editModal'));
     setupModeToggle();
     loadEntries();
+    // Initialize challenge mode if selected
+    if (document.getElementById('challengeMode').checked) {
+        loadRandomEntry();
+    }
 });
 
 function setupModeToggle() {
     const addMode = document.getElementById('addMode');
     const seeMode = document.getElementById('seeMode');
     const consultingMode = document.getElementById('consultingMode');
+    const challengeMode = document.getElementById('challengeMode');
     const addSection = document.getElementById('addSection');
     const seeSection = document.getElementById('seeSection');
     const consultingSection = document.getElementById('consultingSection');
+    const challengeSection = document.getElementById('challengeSection');
 
     addMode.addEventListener('change', () => {
         addSection.style.display = 'block';
         seeSection.style.display = 'none';
         consultingSection.style.display = 'none';
-        // Hide result section when switching modes
+        challengeSection.style.display = 'none';
         document.getElementById('resultSection').style.display = 'none';
     });
 
@@ -26,6 +32,7 @@ function setupModeToggle() {
         addSection.style.display = 'none';
         seeSection.style.display = 'block';
         consultingSection.style.display = 'none';
+        challengeSection.style.display = 'none';
         loadEntries();
     });
 
@@ -33,11 +40,18 @@ function setupModeToggle() {
         addSection.style.display = 'none';
         seeSection.style.display = 'none';
         consultingSection.style.display = 'block';
-        // Hide consulting result when switching to consulting mode
+        challengeSection.style.display = 'none';
         document.getElementById('consultingResultSection').style.display = 'none';
-        // Clear any previous input/output
         document.getElementById('consultingInput').value = '';
         document.getElementById('consultingOutput').value = '';
+    });
+
+    challengeMode.addEventListener('change', () => {
+        addSection.style.display = 'none';
+        seeSection.style.display = 'none';
+        consultingSection.style.display = 'none';
+        challengeSection.style.display = 'block';
+        loadRandomEntry();
     });
 }
 
@@ -122,18 +136,10 @@ async function addEntry() {
 
         const data = await response.json();
         if (response.ok) {
-            // Ensure we have the complete entry data from the Python backend
-            const resultData = {
-                english: data.english || english,
-                french: data.french || french,
-                context: data.context || '',
-                notes: data.notes || ''
-            };
-
             // Display the complete result
-            document.getElementById('resultEnglish').textContent = resultData.english;
-            document.getElementById('resultFrench').textContent = resultData.french;
-            document.getElementById('resultContext').textContent = resultData.context;
+            document.getElementById('resultEnglish').textContent = data.english || english;
+            document.getElementById('resultFrench').textContent = data.french || french;
+            document.getElementById('resultContext').textContent = data.context || '';
             resultSection.style.display = 'block';
 
             clearInputs();
@@ -168,6 +174,34 @@ async function loadEntries() {
     }
 }
 
+async function loadRandomEntry() {
+    try {
+        const button = document.getElementById('nextChallengeButton');
+        button.disabled = true;
+        button.innerHTML = 'Loading...';
+
+        const response = await fetch('/random-entry');
+        if (!response.ok) {
+            throw new Error('Failed to load random entry');
+        }
+        
+        const entry = await response.json();
+        
+        // Display the entry data
+        document.getElementById('challengeEnglish').textContent = entry.english || '';
+        document.getElementById('challengeFrench').textContent = entry.french || '';
+        document.getElementById('challengeContext').textContent = entry.context || '';
+        
+    } catch (error) {
+        console.error('Error loading random entry:', error);
+        alert('Error loading random entry');
+    } finally {
+        const button = document.getElementById('nextChallengeButton');
+        button.disabled = false;
+        button.innerHTML = 'Next Challenge →';
+    }
+}
+
 function displayEntries(entries) {
     const tableBody = document.getElementById('entriesTable');
     tableBody.innerHTML = '';
@@ -183,7 +217,7 @@ function displayEntries(entries) {
         const date = new Date(entry.timestamp * 1000);
         const formattedDate = date.toLocaleString();
 
-        // Create the edit button using createElement instead of innerHTML
+        // Create the edit button
         const editButton = document.createElement('button');
         editButton.className = 'btn btn-edit btn-sm';
         editButton.textContent = 'Edit';

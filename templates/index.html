@@ -24,9 +24,13 @@
 
                 <input type="radio" class="btn-check" name="mode" id="consultingMode">
                 <label class="btn btn-outline-primary" for="consultingMode">Consulting</label>
+
+                <input type="radio" class="btn-check" name="mode" id="challengeMode">
+                <label class="btn btn-outline-primary" for="challengeMode">Challenge</label>
             </div>
         </div>
 
+        <!-- Add Section -->
         <div id="addSection" class="input-section">
             <div class="mb-3">
                 <input type="text" class="form-control" id="englishInput" placeholder="English word/phrase">
@@ -66,6 +70,7 @@
             </div>
         </div>
 
+        <!-- See Section -->
         <div id="seeSection" class="table-responsive" style="display: none;">
             <table class="table table-striped">
                 <thead>
@@ -83,6 +88,7 @@
             </table>
         </div>
 
+        <!-- Consulting Section -->
         <div id="consultingSection" class="input-section" style="display: none;">
             <div class="mb-3">
                 <textarea class="form-control" id="consultingInput" rows="5" 
@@ -109,6 +115,35 @@
             </div>
         </div>
 
+        <!-- Challenge Section -->
+        <div id="challengeSection" class="challenge-section" style="display: none;">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Practice Card</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-muted">English</h6>
+                        <p id="challengeEnglish" class="border-bottom pb-2"></p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-muted">French</h6>
+                        <p id="challengeFrench" class="border-bottom pb-2"></p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-muted">Context</h6>
+                        <p id="challengeContext"></p>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <button class="btn btn-primary" id="nextChallengeButton" onclick="loadRandomEntry()">
+                        Next Challenge →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Modal -->
         <div class="modal fade" id="editModal" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
