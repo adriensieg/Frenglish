@@ -1,14 +1,22 @@
 from typing import Dict, List
 from dataclasses import dataclass
 import logging
+
 from flask import Flask, render_template, request, jsonify, send_from_directory
+
 import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime
+
 from algorithms.data_processor import GeminiProcessor
 from algorithms.prompts import translation, sentences, bcg_consultant
+
 import os
 import random
+
+from security.secretmanagerretriever import get_all_secrets
+
+PROJECT_ID = '183061022621'
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -42,56 +50,27 @@ class TranslationEntry:
             timestamp=data.get("timestamp", 0.0)
         )
 
-# Firestore credentials
-PROJECT_ID = "personal-sandbox-433116" 
-PRIVATE_KEY_ID = "a7bdfd9a00b73c241efd2f7dfe39b131ce5ed236"
-PRIVATE_KEY = """-----BEGIN PRIVATE KEY-----
-MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDCaxwYQbmRhATf
-TmuQjCeW0/YK50/FOv5c/nGIEWcFfKd+yn2sv3e4llS+Y36x3MTU4TyAP23n71e0
-y+kJC6hhcDMKYPG1J5fYTESJL39CeLiB7Deasvi2rupuTql0lUyBYHg6UfNq6n7Q
-rO6sTmIz1vYxrnwBJVIRpsOQke+sp90aonRO4LvAjnS7s4GSvod1KplW45KDLmvs
-PRX+vmxOpxVkUPz205oOS9wM1VnbRV+Z1gp8FSIS2BIumXUURqZA0vHenjrDNfEr
-wOffAFwndCS/mDrU2w3A8YmqMRmkooGnoQKoSJbGvFzfpHQpG4w2z17ELOTz7JQk
-+k1p+2cNAgMBAAECggEAHIRziYdSfeq8gDjThE9am0AaDf1h8Q83MlLMOmY7E032
-j52KE6W+HOBIK+kSM2qroIItSq6DI4sy9T0XwJDqMOixQ+t2aNkW585AG1NROmHU
-xpHskg+AdeNwVZ/KMWSY5T1ORVex+dPNqDRFihaxRuNYF299lvlvcVFhzDnrywpO
-a1JLa/zinJxWSqitcvD1FAoCp0WE8x3rIlNtpH40SedUSWSKhCVoQ6xOHWJxqlKW
-GUMvDWZ68X/UJUZTp8N9VUGBMbKafjZLjnkPRgrT2VLlMqWFVbbpO/VyZ5+BS3TY
-AkKRG6thr9Le+Z8FccIXSGzDDoVLc7pKu5FdYMSlwQKBgQD8lNMUlY2hs1ubnA87
-jBGFAJNki18lij11Oy4y1qyW7h8fDH37H8xcZT1g3dnSTCihKV91QUuGVdx/sM6t
-KLnen7zTL20qeyDxSdqUmD9XGoJzQ+gp2kb1fLDdzvQq+u5V09CVjPZAmoM68Kto
-QmLdRYDqWuQKe81rkG0halMvfQKBgQDFDMFEO85wUk5wpt9q0CbzWyEiYr91t4o+
-IpHHEDZ01phBUMxg62cZoIUFCCPmczkslmeAamOM/ENZ5gnRQ9pnyt/IDLJ05ZuR
-9RxP8eEqb5c3GeGL5kC3Omhk/ZE4Z3Fy+0rB5GxD7OF4T2AvYQxUOZt794JgUGVK
-kI3kcE3K0QKBgBk8dWqVFrWVSg3eJdd5Qzbau99L3ZHOoh1YcGE7+bqKyCk+AkhZ
-AP4qT1uiTuUoHtcbXyJEB9vAMGvBqqS6cPfBVghzsKCR9NSm4GQAYjO9vlLt8gBc
-gsJ8Vt+SkerJb467vxdyIhiKV5pH+ZhNKbuZ+itwMWCqxfd9UqoICY+xAoGBAKQX
-6xoXc+K1p/zH+mXI0ab2zLEF6srs/YKg5yUOq0rBKim6T3imkEUXF68JCFxwt7wZ
-xDd8YUqXCL9kgehyyP6GQ7UkXbhbPSJfLCSnGQttwk9wjhMiu+HaEfWH89c0zZUj
-Dy5IOqCWM20tLLxH5Sx+jKy/gSMT0EY3+vGxVBcBAoGAbEzH6aYxFNge9kUyBXHs
-yYEnunxju99EONIhN7llqskyiXttxCLSifM0OQurgoZj7WvwBK88HxpQjDls+dfK
-1cZqQkAHryiQDvm8ghWZwURVMgc8fA5SxTBcH4ZlDhgYxK2TjjFn/lMi6UhwpORT
-tzZoGuUSHSvgroBQOdqSINE=
------END PRIVATE KEY-----
-"""
-CLIENT_ID = "107679320816609162297"
-CLIENT_EMAIL = "firestore-backend-sa@personal-sandbox-433116.iam.gserviceaccount.com"
-CLIENT_X509_CERT = "https://www.googleapis.com/robot/v1/metadata/x509/firestore-backend-sa%40personal-sandbox-433116.iam.gserviceaccount.com"
+secrets = get_all_secrets(PROJECT_ID)
 
 # Initialize Firebase Admin SDK
 cred = credentials.Certificate({
     "type": "service_account",
-    "project_id": PROJECT_ID,
-    "private_key_id": PRIVATE_KEY_ID,
-    "private_key": PRIVATE_KEY,
-    "client_email": CLIENT_EMAIL,
-    "client_id": CLIENT_ID,
+    "project_id": secrets['project_id'],
+    "private_key_id": secrets['private_key_id_firestore_auth'],
+    "private_key": secrets['private_key_firestore_auth'],
+    "client_email": secrets['client_email_firestore_auth'],
+    "client_id": secrets['client_id_firestore_auth'],
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
     "token_uri": "https://oauth2.googleapis.com/token",
     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_x509_cert_url": CLIENT_X509_CERT,
+    "client_x509_cert_url": secrets['client_x509_cert'],
     "universe_domain": "googleapis.com"
 })
+
+CONFIG = {
+    "api_key": secrets['gemini_api_key'],
+    "model_name": "gemini-2.0-flash-exp"
+}
 
 firebase_admin.initialize_app(cred)
 db = firestore.Client()
@@ -154,12 +133,6 @@ def delete_entry(doc_id: str) -> None:
         logger.error(f"Error deleting entry: {e}")
         raise
 
-CONFIG = {
-    "api_key": "AIzaSyBhCB1cO0ZUzRB0DYBCz4zcMwS9kVy_ruU",
-    "model_name": "gemini-2.0-flash-exp"
-}
-
-# Initialize processor
 processor = GeminiProcessor(
     api_key=CONFIG["api_key"],
     model_name=CONFIG["model_name"]
