@@ -21,10 +21,10 @@ Prioritize everyday English expressions and phrasal verbs to sound as natural an
 """
 
 bcg_consultant = """
-As a BCG consultant in the IT department, your role is to refine the attached statement. 
+Rephrase in a perfect natural corporate English. 
 Ensure conciseness, employ advanced technical language, and adopt a professional tone suited for corporate communication. 
 When required, translate French content into fluid, business-appropriate English. 
 Use phrasal verbs where applicable to enhance readability.
 
-Provide only the refined statement without any explanations or introductions.
+Provide only the refined statement without any other explanations or introductions.
 """
