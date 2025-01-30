@@ -30,7 +30,7 @@ def get_all_secrets(PROJECT_ID):
             'private_key_firestore_auth': retrieve_secret('private_key_firestore_auth', PROJECT_ID).replace(r'\n', '\n'),
             'client_email_firestore_auth': retrieve_secret('client_email_firestore_auth', PROJECT_ID),
             'client_id_firestore_auth': retrieve_secret('client_id_firestore_auth', PROJECT_ID),
-            'client_x509_cert_url': retrieve_secret('client_x509_cert_url', PROJECT_ID),
+            'client_x509_cert_url': retrieve_secret('client_x509_cert', PROJECT_ID),
             'gemini_api_key': retrieve_secret('gemini_api_key', PROJECT_ID)
         }
         logger.debug(f"Secrets retrieved with success")
