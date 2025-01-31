@@ -52,6 +52,43 @@ Separation of Concerns (SoC):
 
 ## 1 - Secure our secrets
 
+## Readability & Maintainability - Separation of Concerns
+```
+.github/
+├── algorithms/
+│   ├── __init__.py
+│   ├── data_processor.py
+│   ├── firestore_service.py
+│   ├── prompts.py
+├── security/
+│   ├── __init__.py
+│   ├── secret_manager.py
+├── static/
+├── templates/
+│   ├── index.html
+├── app/
+│   ├── __init__.py
+│   ├── models.py
+│   ├── routes.py
+│   ├── services.py
+├── config/
+│   ├── __init__.py
+│   ├── settings.py
+├── tests/
+│   ├── test_routes.py
+│   ├── test_services.py
+│   ├── test_data_processor.py
+├── app.py
+├── cloudbuild.yaml
+├── Dockerfile
+├── README.md
+└── requirements.txt
+```
+
+# Security
+
+## 1 - Secure our secrets
+
 | Solution                                      | Description | Advantages | Drawbacks | Complexity | Security Level |
 |-----------------------------------------------|-------------|------------|-----------|------------|----------------|
 | **Google Cloud Secret Manager** | Store secrets securely in GCP's Secret Manager and retrieve them in your app using the Google Cloud SDK. | Secure, managed by Google, IAM-controlled access, audit logs available. | Requires API calls, may add latency. | Medium | ⭐⭐⭐⭐⭐ |
