@@ -1,6 +1,39 @@
 # Frenglish
 Frenglish: A seamless blend of French and English, bridging language gaps through intuitive translation and learning
 
+## Readability & Maintainability - Separation of Concerns
+```
+.github/
+├── algorithms/
+│   ├── __init__.py
+│   ├── data_processor.py
+│   ├── firestore_service.py
+│   ├── prompts.py
+├── security/
+│   ├── __init__.py
+│   ├── secret_manager.py
+├── static/
+├── templates/
+│   ├── index.html
+├── app/
+│   ├── __init__.py
+│   ├── models.py
+│   ├── routes.py
+│   ├── services.py
+├── config/
+│   ├── __init__.py
+│   ├── settings.py
+├── tests/
+│   ├── test_routes.py
+│   ├── test_services.py
+│   ├── test_data_processor.py
+├── app.py
+├── cloudbuild.yaml
+├── Dockerfile
+├── README.md
+└── requirements.txt
+```
+
 # Security
 
 ## 1 - Secure our secrets
