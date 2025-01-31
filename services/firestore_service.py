@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Optional
 from firebase_admin import firestore
 from algorithms.data_processor import TranslationEntry
 import random
@@ -9,80 +9,67 @@ import random
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+COLLECTION_NAME = "Frenglish"
+
 def add_entry(db: firestore.Client, entry: TranslationEntry) -> str:
-    try:
-        if not any([entry.english, entry.french]):
-            raise ValueError("Entry must contain at least one non-empty field")
-
-        # Add timestamp before storing
-        entry.timestamp = datetime.now().timestamp()
-
-        doc_ref = db.collection('Frenglish').document()
-        doc_ref.set(entry.to_dict())
-        return doc_ref.id
-    except Exception as e:
-        logger.error(f"Error adding entry: {e}")
-        raise
+    """Adds a translation entry to Firestore."""
+    if not any([entry.english, entry.french]):
+        raise ValueError("Entry must contain at least one non-empty field")
+    
+    entry.timestamp = datetime.utcnow().timestamp()
+    doc_ref = db.collection(COLLECTION_NAME).document()
+    doc_ref.set(entry.to_dict())
+    logger.info(f"Entry added with ID: {doc_ref.id}")
+    return doc_ref.id
 
 def get_all_entries(db: firestore.Client) -> List[Dict[str, str]]:
+    """Retrieves all translation entries from Firestore, ordered by timestamp descending."""
     try:
-        # Query entries ordered by timestamp in descending order
-        docs = db.collection('Frenglish').order_by('timestamp', direction=firestore.Query.DESCENDING).stream()
-        entries = []
-        for doc in docs:
-            data = doc.to_dict()
-            data['id'] = doc.id
-            entries.append(data)
+        docs = db.collection(COLLECTION_NAME).order_by("timestamp", direction=firestore.Query.DESCENDING).stream()
+        entries = [{**doc.to_dict(), "id": doc.id} for doc in docs]
+        logger.info(f"Retrieved {len(entries)} entries.")
         return entries
     except Exception as e:
-        logger.error(f"Error retrieving entries: {e}")
+        logger.exception("Error retrieving entries")
         raise
 
 def update_entry(db: firestore.Client, doc_id: str, entry: TranslationEntry) -> None:
-    try:
-        if not doc_id:
-            raise ValueError("Document ID is required for update")
-        if not any([entry.english, entry.french]):
-            raise ValueError("Entry must contain at least one non-empty field")
-
-        # Preserve the original timestamp when updating
-        original_doc = db.collection('Frenglish').document(doc_id).get()
-        if original_doc.exists:
-            original_data = original_doc.to_dict()
-            entry.timestamp = original_data.get('timestamp', datetime.now().timestamp())
-        else:
-            entry.timestamp = datetime.now().timestamp()
-
-        db.collection('Frenglish').document(doc_id).set(entry.to_dict())
-    except Exception as e:
-        logger.error(f"Error updating entry: {e}")
-        raise
+    """Updates an existing translation entry in Firestore while preserving the original timestamp."""
+    if not doc_id:
+        raise ValueError("Document ID is required for update")
+    if not any([entry.english, entry.french]):
+        raise ValueError("Entry must contain at least one non-empty field")
+    
+    doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
+    original_doc = doc_ref.get()
+    
+    if not original_doc.exists:
+        raise ValueError("Document not found")
+    
+    original_data = original_doc.to_dict()
+    entry.timestamp = original_data.get("timestamp", datetime.utcnow().timestamp())
+    doc_ref.set(entry.to_dict())
+    logger.info(f"Entry {doc_id} updated.")
 
 def delete_entry(db: firestore.Client, doc_id: str) -> None:
-    try:
-        if not doc_id:
-            raise ValueError("Document ID is required for deletion")
-        db.collection('Frenglish').document(doc_id).delete()
-    except Exception as e:
-        logger.error(f"Error deleting entry: {e}")
-        raise
+    """Deletes a translation entry from Firestore."""
+    if not doc_id:
+        raise ValueError("Document ID is required for deletion")
+    
+    db.collection(COLLECTION_NAME).document(doc_id).delete()
+    logger.info(f"Entry {doc_id} deleted.")
 
-def get_random_entry(db: firestore.Client) -> Dict[str, str]:
+def get_random_entry(db: firestore.Client) -> Optional[Dict[str, str]]:
+    """Retrieves a random translation entry from Firestore."""
     try:
-        # Get all documents from the collection
-        docs = list(db.collection('Frenglish').stream())
-
+        docs = list(db.collection(COLLECTION_NAME).stream())
         if not docs:
-            raise ValueError("No entries found")
-
-        # Select a random document
+            logger.warning("No entries found.")
+            return None
         random_doc = random.choice(docs)
-
-        # Convert the document to a dictionary and add the ID
-        entry_data = random_doc.to_dict()
-        entry_data['id'] = random_doc.id
-
+        entry_data = {**random_doc.to_dict(), "id": random_doc.id}
+        logger.info(f"Random entry retrieved: {entry_data['id']}")
         return entry_data
     except Exception as e:
-        logger.error(f"Error retrieving random entry: {e}")
+        logger.exception("Error retrieving random entry")
         raise

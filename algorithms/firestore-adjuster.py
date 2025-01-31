@@ -4,14 +4,12 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 # Firestore credentials
-PROJECT_ID = "personal-sandbox-433116" 
-PRIVATE_KEY_ID = "a7bdfd9a00b73c241efd2f7dfe39b131ce5ed236"
-PRIVATE_KEY = """-----BEGIN PRIVATE KEY-----
------END PRIVATE KEY-----
-"""
-CLIENT_ID = "107679320816609162297"
-CLIENT_EMAIL = "firestore-backend-sa@personal-sandbox-433116.iam.gserviceaccount.com"
-CLIENT_X509_CERT = "https://www.googleapis.com/robot/v1/metadata/x509/firestore-backend-sa%40personal-sandbox-433116.iam.gserviceaccount.com"
+PROJECT_ID = "" 
+PRIVATE_KEY_ID = ""
+PRIVATE_KEY = ""
+CLIENT_ID = ""
+CLIENT_EMAIL = ""
+CLIENT_X509_CERT = ""
 
 # Initialize Firebase Admin SDK
 cred = credentials.Certificate({
